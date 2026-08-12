@@ -1,0 +1,179 @@
+name: touchdown
+
+x-postgres-common: &postgres-common
+  image: postgres:17-alpine
+  restart: unless-stopped
+  environment:
+    POSTGRES_USER: touchdown
+    POSTGRES_PASSWORD: touchdown
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U touchdown -d $${POSTGRES_DB}"]
+    interval: 5s
+    timeout: 3s
+    retries: 10
+  networks: [touchdown]
+
+x-svc: &svc
+  build: { context: ., dockerfile: Dockerfile.dev }
+  volumes:
+    - .:/app
+    - cargo-registry:/usr/local/cargo/registry
+    - cargo-target:/app/target
+  env_file: .env
+  environment: &svc-env
+    NATS_URL: nats://nats:4222
+    REDIS_URL: redis://redis:6379
+    RUST_LOG: info,sqlx=warn
+  depends_on:
+    nats: { condition: service_healthy }
+
+services:
+  postgres-auth:
+    <<: *postgres-common
+    container_name: td-postgres-auth
+    environment:
+      POSTGRES_USER: touchdown
+      POSTGRES_PASSWORD: touchdown
+      POSTGRES_DB: auth_db
+    ports: ["5433:5432"]
+    volumes: [pg-auth:/var/lib/postgresql/data]
+
+  postgres-catalog:
+    <<: *postgres-common
+    container_name: td-postgres-catalog
+    environment:
+      POSTGRES_USER: touchdown
+      POSTGRES_PASSWORD: touchdown
+      POSTGRES_DB: catalog_db
+    ports: ["5434:5432"]
+    volumes: [pg-catalog:/var/lib/postgresql/data]
+
+  postgres-inventory:
+    <<: *postgres-common
+    container_name: td-postgres-inventory
+    environment:
+      POSTGRES_USER: touchdown
+      POSTGRES_PASSWORD: touchdown
+      POSTGRES_DB: inventory_db
+    ports: ["5435:5432"]
+    volumes: [pg-inventory:/var/lib/postgresql/data]
+
+  postgres-media:
+    <<: *postgres-common
+    container_name: td-postgres-media
+    environment:
+      POSTGRES_USER: touchdown
+      POSTGRES_PASSWORD: touchdown
+      POSTGRES_DB: media_db
+    ports: ["5436:5432"]
+    volumes: [pg-media:/var/lib/postgresql/data]
+
+  nats:
+    image: nats:2.11-alpine
+    container_name: td-nats
+    restart: unless-stopped
+    command:
+      - "--jetstream"
+      - "--store_dir=/data"
+      - "--http_port=8222"
+      - "--name=td-nats"
+    ports: ["4222:4222", "8222:8222"]
+    volumes: [nats-data:/data]
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8222/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [touchdown]
+
+  redis:
+    image: redis:7-alpine
+    container_name: td-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports: ["6379:6379"]
+    volumes: [redis-data:/data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [touchdown]
+
+  minio:
+    image: minio/minio:latest
+    container_name: td-minio
+    restart: unless-stopped
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: touchdown
+      MINIO_ROOT_PASSWORD: touchdown123
+    ports: ["9000:9000", "9001:9001"]
+    volumes: [minio-data:/data]
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [touchdown]
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: td-minio-init
+    depends_on:
+      minio: { condition: service_healthy }
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 touchdown touchdown123 &&
+      mc mb --ignore-existing local/touchdown-media &&
+      mc mb --ignore-existing local/touchdown-private &&
+      mc anonymous set download local/touchdown-media &&
+      echo 'MinIO buckets ready'
+      "
+    networks: [touchdown]
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.13
+    container_name: td-meilisearch
+    restart: unless-stopped
+    environment:
+      MEILI_MASTER_KEY: touchdown_dev_master_key
+      MEILI_ENV: development
+    ports: ["7700:7700"]
+    volumes: [meili-data:/meili_data]
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:7700/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [touchdown]
+
+  # === Application Services ====================
+  gateway:
+    <<: *svc
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        SERVICE: gateway
+    ports:
+      - "8080:8080"
+    environment:
+      <<: *svc-env
+      GATEWAY_ADDR: 0.0.0.0:8080
+
+networks:
+  touchdown:
+    driver: bridge
+
+volumes:
+  cargo-registry: {}
+  cargo-target: {}
+  pg-auth:
+  pg-catalog:
+  pg-inventory:
+  pg-media:
+  nats-data:
+  redis-data:
+  minio-data:
+  meili-data:

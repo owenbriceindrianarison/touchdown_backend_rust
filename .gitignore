@@ -1,0 +1,7 @@
+/target
+/target-docker
+.env
+*.log
+.DS_Store
+/clients/typescript/dist
+/clients/typescript/node_modules

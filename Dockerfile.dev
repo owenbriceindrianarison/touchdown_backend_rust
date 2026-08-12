@@ -1,0 +1,21 @@
+FROM rust:1.97-bookworm
+
+ARG SERVICE
+ENV SERVICE=${SERVICE}
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        pkg-config libssl-dev ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN cargo install cargo-watch --locked \
+ && cargo install sqlx-cli --no-default-features --features rustls,postgres --locked
+
+WORKDIR /app
+
+ENV CARGO_TARGET_DIR=/app/target-docker
+ENV RUST_LOG=info,sqlx=warn
+ENV RUST_BACKTRACE=1
+
+EXPOSE 8080
+
+CMD ["sh", "-c", "cargo watch -w crates -w services -x \"run -p ${SERVICE}\""]

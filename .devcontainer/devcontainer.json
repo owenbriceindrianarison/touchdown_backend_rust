@@ -1,0 +1,83 @@
+{
+  "name": "Touchdown Backend",
+  "dockerComposeFile": [
+    "../docker-compose.dev.yml"
+  ],
+  "service": "gateway",
+  "workspaceFolder": "/app",
+  "initializeCommand": "cp .env.example .env",
+  "overrideCommand": false,
+  "runServices": [
+    "nats",
+    "redis",
+    "minio",
+    "meilisearch",
+    "postgres-auth",
+    "postgres-catalog",
+    "postgres-inventory",
+    // "postgres-order",
+    // "postgres-payment",
+    // "postgres-notification",
+    "postgres-media",
+    // "postgres-review",
+    // "postgres-promo",
+    // "postgres-shipping",
+    // "postgres-tax",
+    // "postgres-returns",
+    // "postgres-invoice",
+    // "postgres-wishlist",
+    // "postgres-analytics",
+    // "postgres-cms",
+    "gateway"
+  ],
+  "forwardPorts": [
+    8080,
+    4222,
+    8222,
+    6379,
+    7700,
+    9000,
+    9001
+  ],
+  "portsAttributes": {
+    "8080": {
+      "label": "Gateway API"
+    },
+    "4222": {
+      "label": "NATS"
+    },
+    "8222": {
+      "label": "NATS monitor"
+    },
+    "6379": {
+      "label": "Redis"
+    },
+    "7700": {
+      "label": "Meilisearch"
+    },
+    "9000": {
+      "label": "MinIO API"
+    },
+    "9001": {
+      "label": "MinIO console"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rust-lang.rust-analyzer",
+        "vadimcn.vscode-lldb",
+        "tamasfe.even-better-toml",
+        "serayuzgur.crates"
+      ],
+      "settings": {
+        "rust-analyzer.cargo.buildScripts.enable": true,
+        "rust-analyzer.checkOnSave.command": "clippy",
+        "editor.formatOnSave": true,
+        "[rust]": {
+          "editor.defaultFormatter": "rust-lang.rust-analyzer"
+        }
+      }
+    }
+  }
+}

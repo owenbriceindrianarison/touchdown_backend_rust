@@ -1,0 +1,6 @@
+target
+target-docker
+.git
+.github
+clients/typescript/node_modules
+**/*.md
