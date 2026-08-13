@@ -5,3 +5,7 @@ version = 4
 [[package]]
 name = "gateway"
 version = "0.1.0"
+
+[[package]]
+name = "users"
+version = "0.1.0"
