@@ -10,6 +10,7 @@ axum = { workspace = true }
 
 anyhow = { workspace = true }
 thiserror = { workspace = true }
+uuid = { workspace = true }
 utoipa = { workspace = true }
 
 async-nats = { workspace = true }

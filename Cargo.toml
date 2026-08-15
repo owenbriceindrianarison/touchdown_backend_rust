@@ -63,3 +63,6 @@ sqlx = { version = "0.9.0", default-features = false, features = [
 utoipa = { version = "5.5", features = ["axum_extras", "chrono", "uuid"] }
 utoipa-axum = "0.2"
 utoipa-swagger-ui = { version = "9", features = ["axum"] }
+
+# ======== divers ======
+uuid = { version = "1.24", features = ["v7", "serde"] }
