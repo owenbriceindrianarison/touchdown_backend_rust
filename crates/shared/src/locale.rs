@@ -7,17 +7,17 @@ use utoipa::ToSchema;
 #[serde(rename_all = "lowercase")]
 pub enum Locale {
     #[default]
-    EN,
-    FR,
+    En,
+    Fr,
 }
 
 impl Locale {
-    pub const ALL: [Locale; 2] = [Locale::EN, Locale::FR];
+    pub const ALL: [Locale; 2] = [Locale::En, Locale::Fr];
 
     pub fn as_str(&self) -> &'static str {
         match self {
-            Locale::EN => "en",
-            Locale::FR => "fr",
+            Locale::En => "en",
+            Locale::Fr => "fr",
         }
     }
 
@@ -37,10 +37,11 @@ impl Locale {
 
 impl FromStr for Locale {
     type Err = ();
+
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_ascii_lowercase().as_str() {
-            "en" => Ok(Locale::EN),
-            "fr" => Ok(Locale::FR),
+            "en" => Ok(Locale::En),
+            "fr" => Ok(Locale::Fr),
             _ => Err(()),
         }
     }

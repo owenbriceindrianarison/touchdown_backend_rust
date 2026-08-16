@@ -34,6 +34,9 @@ anyhow = "1.0.104"
 # ========= Serialization =============
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
+# ========= Security ============
+hex = "0.4.3"
+
 
 # ========= Observability =============
 tracing = "0.1.44"
@@ -66,3 +69,4 @@ utoipa-swagger-ui = { version = "9", features = ["axum"] }
 
 # ======== divers ======
 uuid = { version = "1.24", features = ["v7", "serde"] }
+dotenvy = "0.15.7"
