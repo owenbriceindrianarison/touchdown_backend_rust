@@ -40,7 +40,7 @@ hex = "0.4.3"
 
 # ========= Observability =============
 tracing = "0.1.44"
-tracing-subscriber = { version = "0.3.23", feature = [
+tracing-subscriber = { version = "0.3.23", features = [
     "env-filter",
     "json",
     "fmt",
@@ -49,6 +49,10 @@ tracing-opentelemetry = "0.33.0"
 opentelemetry = "0.32.0"
 opentelemetry_sdk = { version = "0.32.1", features = ["rt-tokio"] }
 opentelemetry-otlp = { version = "0.32.0", features = ["grpc-tonic", "trace"] }
+
+# ========== tests ============
+testcontainers = "0.27"
+testcontainers-modules = { version = "0.15", features = ["postgres", "redis"] }
 
 # ========== persistence ==============
 sqlx = { version = "0.9.0", default-features = false, features = [
@@ -67,6 +71,6 @@ utoipa = { version = "5.5", features = ["axum_extras", "chrono", "uuid"] }
 utoipa-axum = "0.2"
 utoipa-swagger-ui = { version = "9", features = ["axum"] }
 
-# ======== divers ======
+# ======== misc ======
 uuid = { version = "1.24", features = ["v7", "serde"] }
 dotenvy = "0.15.7"

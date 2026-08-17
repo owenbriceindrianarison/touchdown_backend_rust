@@ -25,7 +25,25 @@ dotenvy = { workspace = true }
 
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+
+# --- optionals ---
 tracing-opentelemetry = { workspace = true, optional = true }
 opentelemetry = { workspace = true, optional = true }
 opentelemetry_sdk = { workspace = true, optional = true }
 opentelemetry-otlp = { workspace = true, optional = true }
+testcontainers = { workspace = true, optional = true }
+testcontainers-modules = { workspace = true, optional = true }
+
+
+[features]
+default = []
+# Export OTLP. Gated behind a feature: the opentelemetry ecosystem breaks its
+# API at every minor version, so we don't want it to block the whole build.
+otel = [
+    "dep:tracing-opentelemetry",
+    "dep:opentelemetry",
+    "dep:opentelemetry_sdk",
+    "dep:opentelemetry-otlp",
+]
+# Testcontainers fixtures, enabled by services in dev-dependencies.
+testing = ["dep:testcontainers", "dep:testcontainers-modules"]
