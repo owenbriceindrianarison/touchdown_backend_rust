@@ -35,7 +35,12 @@ anyhow = "1.0.104"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.151"
 # ========= Security ============
+pasetors = { version = "0.8", features = ["v4", "std"] }
+argon2 = { version = "0.5", features = ["std"] }
+rand = "0.10.2"
+sha2 = "0.11"
 hex = "0.4.3"
+base64 = "0.23"
 
 
 # ========= Observability =============
@@ -74,3 +79,4 @@ utoipa-swagger-ui = { version = "9", features = ["axum"] }
 # ======== misc ======
 uuid = { version = "1.24", features = ["v7", "serde"] }
 dotenvy = "0.15.7"
+chrono = { version = "0.4", features = ["serde"] }

@@ -8,9 +8,12 @@ license.workspace = true
 [dependencies]
 axum = { workspace = true }
 
+pasetors = { workspace = true }
+
 anyhow = { workspace = true }
 thiserror = { workspace = true }
 uuid = { workspace = true }
+chrono = { workspace = true }
 utoipa = { workspace = true }
 
 async-nats = { workspace = true }
