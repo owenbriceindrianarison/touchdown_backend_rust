@@ -6,6 +6,9 @@ rust-version.workspace = true
 license.workspace = true
 
 [dependencies]
+tokio = { workspace = true }
+futures = { workspace = true }
+async-trait = { workspace = true }
 axum = { workspace = true }
 
 pasetors = { workspace = true }
