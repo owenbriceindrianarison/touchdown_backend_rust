@@ -1,6 +1,7 @@
 pub mod config;
 pub mod db;
 pub mod error;
+pub mod health;
 pub mod ids;
 pub mod locale;
 pub mod nats;
