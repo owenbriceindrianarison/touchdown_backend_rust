@@ -4,6 +4,7 @@ pub mod error;
 pub mod ids;
 pub mod locale;
 pub mod nats;
+pub mod outbox;
 pub mod pagination;
 pub mod paseto;
 pub mod telemetry;
