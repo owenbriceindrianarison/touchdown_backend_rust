@@ -62,8 +62,8 @@ opentelemetry_sdk = { version = "0.32.1", features = ["rt-tokio"] }
 opentelemetry-otlp = { version = "0.32.0", features = ["grpc-tonic", "trace"] }
 
 # ========== tests ============
-# testcontainers = "0.26"
-# testcontainers-modules = { version = "0.14", features = ["postgres", "redis"] }
+testcontainers = "0.27"
+testcontainers-modules = { version = "0.15", features = ["postgres", "redis", "minio"] }
 
 # ========== persistence ==============
 sqlx = { version = "0.9.0", default-features = false, features = [

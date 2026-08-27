@@ -61,14 +61,14 @@ migrate-media: ## Apply Media service migrations
 
 migrate: migrate-auth migrate-catalog migrate-inventory migrate-media ## Apply all migrations
 
-test: ## Run all tests (unit + integration tests with testcontainers, requires Docker)
-	cargo test --workspace --all-features -- --test-threads=4
+test: ## Run all tests (unit + integration, testcontainers via Docker socket)
+	$(COMPOSE) run --rm test
 
 test-unit: ## Run unit tests only (fast, no Docker)
-	cargo test --workspace --lib
+	$(COMPOSE) run --rm test cargo test --workspace --lib
 
 test-it: ## Run integration tests only
-	cargo test --workspace --all-features --tests -- --test-threads=4
+	$(COMPOSE) run --rm test cargo test --workspace --all-features --tests -- --test-threads=4
 
 fmt: ## Format the code
 	cargo fmt --all

@@ -11,7 +11,7 @@ pub mod pagination;
 pub mod paseto;
 pub mod telemetry;
 
-// #[cfg(feature = "testing")]
+#[cfg(feature = "testing")]
 pub mod testing;
 
 pub use error::{AppError, AppResult, ErrorBody};

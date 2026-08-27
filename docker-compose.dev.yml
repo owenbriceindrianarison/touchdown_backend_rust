@@ -152,6 +152,16 @@ services:
       retries: 10
     networks: [touchdown]
 
+  test:
+    <<: *rust-service
+    container_name: td-test
+    volumes:
+      - .:/app:cached
+      - cargo-registry:/usr/local/cargo/registry
+      - cargo-target:/app/target-docker
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: ["cargo", "test", "--workspace", "--all-features", "--", "--test-threads=4"]
+
   gateway:
     <<: *rust-service
     container_name: td-gateway
@@ -184,3 +194,4 @@ volumes:
   redis-data:
   minio-data:
   meili-data:
+  

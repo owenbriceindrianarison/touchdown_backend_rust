@@ -40,11 +40,16 @@ where
 #[cfg(feature = "otel")]
 fn init_with<S>(subscriber: S, cfg: &AppConfig) -> TelemetryGuard
 where
-    S: SubscriberInitExt + for<'a> tracing_subscriber::layer::SubscriberExt,
+    S: tracing::Subscriber
+        + for<'a> tracing_subscriber::layer::SubscriberExt
+        + for<'span> tracing_subscriber::registry::LookupSpan<'span>
+        + Send
+        + Sync
+        + 'static,
 {
     use opentelemetry::{KeyValue, trace::TracerProvider as _};
     use opentelemetry_otlp::WithExportConfig;
-    use opentelemetry_sdk::{Resource, trace::TracerProvider};
+    use opentelemetry_sdk::{Resource, trace::SdkTracerProvider};
 
     let Some(endpoint) = cfg.otlp_endpoint.clone() else {
         subscriber.init();
@@ -57,12 +62,16 @@ where
         .build()
         .expect("failed to build OTLP exporter");
 
-    let provider = TracerProvider::builder()
-        .with_batch_exporter(exporter, opentelemetry_sdk::runtime::Tokio)
-        .with_resource(Resource::new(vec![
+    let resource = Resource::builder()
+        .with_attributes([
             KeyValue::new("service.name", cfg.service_name.clone()),
             KeyValue::new("service.version", env!("CARGO_PKG_VERSION")),
-        ]))
+        ])
+        .build();
+
+    let provider = SdkTracerProvider::builder()
+        .with_batch_exporter(exporter)
+        .with_resource(resource)
         .build();
 
     let tracer = provider.tracer(cfg.service_name.clone());
@@ -80,7 +89,7 @@ where
 #[derive(Default)]
 pub struct TelemetryGuard {
     #[cfg(feature = "otel")]
-    provider: Option<opentelemetry_sdk::trace::TracerProvider>,
+    provider: Option<opentelemetry_sdk::trace::SdkTracerProvider>,
 }
 
 impl Drop for TelemetryGuard {

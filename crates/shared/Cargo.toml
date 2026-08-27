@@ -31,16 +31,14 @@ dotenvy = { workspace = true }
 
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
-testcontainers = "0.27"
-testcontainers-modules = { version = "0.15", features = ["postgres", "redis"] }
 
 # --- optionals ---
 tracing-opentelemetry = { workspace = true, optional = true }
 opentelemetry = { workspace = true, optional = true }
 opentelemetry_sdk = { workspace = true, optional = true }
 opentelemetry-otlp = { workspace = true, optional = true }
-# testcontainers = { workspace = true }
-# testcontainers-modules = {workspace = true }
+testcontainers = { workspace = true, optional = true }
+testcontainers-modules = { workspace = true, optional = true }
 
 
 [features]
@@ -54,8 +52,8 @@ otel = [
     "dep:opentelemetry-otlp",
 ]
 # Testcontainers fixtures, enabled by services in dev-dependencies.
-# testing = ["dep:testcontainers"]
+testing = ["dep:testcontainers", "dep:testcontainers-modules"]
 
 [[example]]
 name = "gen_keys"
-path = "src/examples/gen_keys.rs"
+path = "examples/gen_keys.rs"
