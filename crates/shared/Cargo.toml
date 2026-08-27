@@ -55,3 +55,7 @@ otel = [
 ]
 # Testcontainers fixtures, enabled by services in dev-dependencies.
 # testing = ["dep:testcontainers"]
+
+[[example]]
+name = "gen_keys"
+path = "src/examples/gen_keys.rs"
