@@ -87,7 +87,7 @@ impl OutboxRelay {
                 SET attempts = attempts + 1,
                     available_at = now() + interval '30 seconds'
                 WHERE id IN (
-                    SELECT if FROM outbox_events
+                    SELECT id FROM outbox_events
                     WHERE published_at IS NULL AND available_at <= now()
                     ORDER BY available_at, id
                     LIMIT $1
