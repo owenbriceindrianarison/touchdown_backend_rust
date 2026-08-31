@@ -195,12 +195,12 @@ impl axum::response::IntoResponse for AppError {
 
         let mut response = (status, axum::Json(self.to_body())).into_response();
 
-        if let AppError::RateLimited { retry_after_secs } = self {
-            if let Ok(v) = axum::http::HeaderValue::from_str(&retry_after_secs.to_string()) {
-                response
-                    .headers_mut()
-                    .insert(axum::http::header::RETRY_AFTER, v);
-            }
+        if let AppError::RateLimited { retry_after_secs } = self
+            && let Ok(v) = axum::http::HeaderValue::from_str(&retry_after_secs.to_string())
+        {
+            response
+                .headers_mut()
+                .insert(axum::http::header::RETRY_AFTER, v);
         }
 
         response

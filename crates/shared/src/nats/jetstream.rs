@@ -125,8 +125,8 @@ where
                 Err(e) => {
                     tracing::warn!(subject = %subject, attempt = delivered, error = %e, "handler failed, will retry");
                     // Exponential backoff limited to 60 seconds.
-                    let delay = Duration::from_secs((1u64 << delivered.min(6)) as u64)
-                        .min(Duration::from_secs(60));
+                    let delay =
+                        Duration::from_secs(1u64 << delivered.min(6)).min(Duration::from_secs(60));
                     let _ = msg.ack_with(jetstream::AckKind::Nak(Some(delay))).await;
                 }
             },
