@@ -23,14 +23,14 @@ pub struct HealthCheck {
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct HeathReport {
+pub struct HealthReport {
     pub service: String,
     pub version: String,
     pub status: HealthStatus,
     pub checks: Vec<HealthCheck>,
 }
 
-impl HeathReport {
+impl HealthReport {
     pub fn new(service: impl Into<String>, checks: Vec<HealthCheck>) -> Self {
         let status = if checks.iter().any(|c| c.status == HealthStatus::Down) {
             HealthStatus::Down
