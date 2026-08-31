@@ -18,4 +18,5 @@ ENV RUST_BACKTRACE=1
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "cargo watch -w crates -w services -x \"run -p ${SERVICE}\""]
+# CMD ["sh", "-c", "cargo watch -w crates -w services -x \"run -p ${SERVICE}\""]
+CMD ["sh", "-c", "cargo watch --why -w crates -w services -x \"run -p ${SERVICE}\""]

@@ -1,21 +1,27 @@
 use std::sync::Arc;
 
-use axum::{Router, routing::get};
+use axum::{
+    Router,
+    http::{HeaderValue, Method, header},
+    routing::get,
+};
 use tower_http::{
     cors::{AllowOrigin, CorsLayer},
     trace::TraceLayer,
 };
 use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 
 use shared::{config::AppConfig, nats::NatsRpc, telemetry};
-use utoipa_swagger_ui::SwaggerUi;
 
 use crate::{openapi::ApiDoc, state::AppState};
 
 mod openapi;
+
 mod routes {
     pub mod health;
 }
+
 mod state;
 
 const SERVICE: &str = "gateway";
@@ -26,8 +32,9 @@ async fn main() -> anyhow::Result<()> {
     let _telemetry = telemetry::init(&cfg);
 
     let rpc = NatsRpc::connect(&cfg).await?;
-    // The Gateway creates the streams at boot time: it starts before the other services,
-    // so their consumers find a stream already in place.
+
+    // The Gateway creates the streams at boot time: it starts before the
+    // other services, so their consumers find a stream already in place.
     let publisher = shared::nats::JetStreamPublisher::new(rpc.client());
     shared::nats::ensure_streams(publisher.context()).await?;
 
@@ -41,12 +48,16 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         .route("/health", get(routes::health::health))
         .route("/readyz", get(routes::health::readyz))
-        .merge(SwaggerUi::new("/docs").url("/openapi.json", ApiDoc::openapi()))
+        .merge(
+            SwaggerUi::new("/docs")
+                .url("/openapi.json", ApiDoc::openapi()),
+        )
         .layer(TraceLayer::new_for_http())
         .layer(cors)
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind(cfg.http_addr).await?;
+
     tracing::info!(addr = %cfg.http_addr, "gateway listening");
 
     axum::serve(listener, app)
@@ -58,21 +69,70 @@ async fn main() -> anyhow::Result<()> {
 
 fn build_cors(cfg: &AppConfig) -> CorsLayer {
     let origins = std::env::var("CORS_ALLOWED_ORIGINS").unwrap_or_default();
-    let parsed: Vec<_> = origins
-        .split(",")
-        .filter(|s| !s.trim().is_empty())
-        .filter_map(|s| s.trim().parse::<axum::http::HeaderValue>().ok())
+
+    let parsed: Vec<HeaderValue> = origins
+        .split(',')
+        .filter_map(|origin| {
+            let origin = origin.trim();
+
+            if origin.is_empty() {
+                return None;
+            }
+
+            match origin.parse::<HeaderValue>() {
+                Ok(value) => Some(value),
+                Err(error) => {
+                    tracing::warn!(
+                        origin,
+                        %error,
+                        "ignoring invalid CORS origin"
+                    );
+                    None
+                }
+            }
+        })
         .collect();
 
-    let layer = CorsLayer::new()
-        .allow_methods(tower_http::cors::Any)
-        .allow_headers(tower_http::cors::Any);
+    let methods = [
+        Method::GET,
+        Method::POST,
+        Method::PUT,
+        Method::PATCH,
+        Method::DELETE,
+        Method::OPTIONS,
+    ];
 
-    if parsed.is_empty() && cfg.environment.is_dev() {
-        // Development only: Next/Angular frontends run on variable ports.
-        // In production, unlisted origins are blocked.
-        layer.allow_origin(tower_http::cors::Any)
+    let headers = [
+        header::ACCEPT,
+        header::AUTHORIZATION,
+        header::CONTENT_TYPE,
+    ];
+
+    let layer = CorsLayer::new()
+        .allow_methods(methods)
+        .allow_headers(headers);
+
+    if parsed.is_empty() {
+        if cfg.environment.is_dev() {
+            tracing::debug!(
+                "CORS_ALLOWED_ORIGINS is not set; allowing any origin in development"
+            );
+
+            // No credentials with wildcard origin.
+            layer.allow_origin(tower_http::cors::Any)
+        } else {
+            tracing::warn!(
+                "CORS_ALLOWED_ORIGINS is not set; no cross-origin requests will be allowed"
+            );
+
+            layer.allow_origin(AllowOrigin::list(Vec::<HeaderValue>::new()))
+        }
     } else {
+        tracing::debug!(
+            origins = ?parsed,
+            "configured CORS origins"
+        );
+
         layer
             .allow_origin(AllowOrigin::list(parsed))
             .allow_credentials(true)
