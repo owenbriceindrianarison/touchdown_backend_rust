@@ -48,10 +48,7 @@ async fn main() -> anyhow::Result<()> {
     let app = Router::new()
         .route("/health", get(routes::health::health))
         .route("/readyz", get(routes::health::readyz))
-        .merge(
-            SwaggerUi::new("/docs")
-                .url("/openapi.json", ApiDoc::openapi()),
-        )
+        .merge(SwaggerUi::new("/docs").url("/openapi.json", ApiDoc::openapi()))
         .layer(TraceLayer::new_for_http())
         .layer(cors)
         .with_state(state);
@@ -102,11 +99,7 @@ fn build_cors(cfg: &AppConfig) -> CorsLayer {
         Method::OPTIONS,
     ];
 
-    let headers = [
-        header::ACCEPT,
-        header::AUTHORIZATION,
-        header::CONTENT_TYPE,
-    ];
+    let headers = [header::ACCEPT, header::AUTHORIZATION, header::CONTENT_TYPE];
 
     let layer = CorsLayer::new()
         .allow_methods(methods)
@@ -114,9 +107,7 @@ fn build_cors(cfg: &AppConfig) -> CorsLayer {
 
     if parsed.is_empty() {
         if cfg.environment.is_dev() {
-            tracing::debug!(
-                "CORS_ALLOWED_ORIGINS is not set; allowing any origin in development"
-            );
+            tracing::debug!("CORS_ALLOWED_ORIGINS is not set; allowing any origin in development");
 
             // No credentials with wildcard origin.
             layer.allow_origin(tower_http::cors::Any)

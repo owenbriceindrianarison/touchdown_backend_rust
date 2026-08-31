@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-D warnings"
+
+jobs:
+  lint:
+    name: Format & Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.97.0"
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --workspace --all-features --all-targets
+
+  test:
+    name: Tests (unit + integration)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.97.0"
+      - uses: Swatinem/rust-cache@v2
+
+      # GitHub Runners support Docker: testcontainers starts its own Postgres/NATS instances. No `services:` configuration is required.
+      - name: Vérifier Docker
+        run: docker info > /dev/null
+
+      # Pre-fetch images: prevents the first test from timing out during the pull.
+      - name: Pré-tirer les images de test
+        run: |
+          docker pull postgres:17-alpine &
+          docker pull nats:2.11-alpine &
+          docker pull redis:7-alpine &
+          wait
+
+      - name: Tests
+        run: cargo test --workspace --all-features -- --test-threads=4
+        env:
+          ENVIRONMENT: test
+          LOG_LEVEL: warn
+          PASETO_PUBLIC_KEY: ""
+
+  migrations:
+    name: Migrations SQLx
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: touchdown
+          POSTGRES_PASSWORD: touchdown
+          POSTGRES_DB: ci_db
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 3s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with: { toolchain: "1.97.0" }
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo install sqlx-cli --no-default-features --features rustls,postgres --locked
+
+      # Verify that each migration applies AND can be reversed:
+      # A non-reversible migration is a trap in production.
+      - name: Appliquer et révoquer chaque jeu de migrations
+        run: |
+          for dir in services/*/migrations; do
+            [ -d "$dir" ] || continue
+            svc=$(basename $(dirname "$dir"))
+            echo "▶ $svc"
+            psql "postgres://touchdown:touchdown@localhost:5432/ci_db" \
+              -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+            DATABASE_URL="postgres://touchdown:touchdown@localhost:5432/ci_db" \
+              sqlx migrate run --source "$dir"
+            DATABASE_URL="postgres://touchdown:touchdown@localhost:5432/ci_db" \
+              sqlx migrate revert --source "$dir" --target-version 0
+          done
