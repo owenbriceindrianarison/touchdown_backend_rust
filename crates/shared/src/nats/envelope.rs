@@ -11,6 +11,8 @@ pub const HDR_LOCALE: &str = "X-Locale";
 pub const HDR_REQUEST_ID: &str = "X-Request-Id";
 pub const HDR_TRACEPARENT: &str = "traceparent";
 pub const HDR_MSG_ID: &str = "Nats-Msg-Id";
+pub const HDR_CLIENT_IP: &str = "X-Client-Ip";
+pub const HDR_USER_AGENT: &str = "X-User-Agent";
 
 /// Call context, carried in the NATS HEADERS and not in the body.
 ///
@@ -23,6 +25,8 @@ pub struct RequestContext {
     pub locale: Locale,
     pub request_id: String,
     pub traceparent: Option<String>,
+    pub client_ip: Option<String>,
+    pub user_agent: Option<String>,
 }
 
 impl RequestContext {
@@ -58,6 +62,12 @@ impl RequestContext {
         }
         h.insert(HDR_LOCALE, self.locale.as_str());
         h.insert(HDR_REQUEST_ID, self.request_id.as_str());
+        if let Some(ip) = &self.client_ip {
+            h.insert(HDR_CLIENT_IP, ip.as_str());
+        }
+        if let Some(ua) = &self.user_agent {
+            h.insert(HDR_USER_AGENT, ua.as_str());
+        }
         h
     }
 
@@ -75,6 +85,8 @@ impl RequestContext {
                 .unwrap_or(default_locale),
             request_id: get(HDR_REQUEST_ID).unwrap_or_else(|| new_id().to_string()),
             traceparent: get(HDR_TRACEPARENT),
+            client_ip: get(HDR_CLIENT_IP),
+            user_agent: get(HDR_USER_AGENT),
         }
     }
 }
