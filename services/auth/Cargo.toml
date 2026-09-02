@@ -1,6 +1,27 @@
 [package]
-name = "users"
-edition.workspace = true
+name = "auth"
 version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
 
 [dependencies]
+shared     = { workspace = true }
+contracts  = { workspace = true }
+tokio      = { workspace = true }
+serde      = { workspace = true }
+serde_json = { workspace = true }
+sqlx       = { workspace = true }
+uuid       = { workspace = true }
+chrono     = { workspace = true }
+tracing    = { workspace = true }
+anyhow     = { workspace = true }
+argon2     = { workspace = true }
+rand       = { workspace = true }
+sha2       = { workspace = true }
+base64     = { workspace = true }
+async-trait = { workspace = true }
+validator  = { workspace = true }
+
+[dev-dependencies]
+shared  = { workspace = true, features = ["testing"] }
+futures = { workspace = true }
