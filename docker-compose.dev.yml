@@ -179,6 +179,20 @@ services:
       nats:  { condition: service_healthy }
       redis: { condition: service_healthy }
 
+  auth:
+    <<: *rust-service
+    container_name: td-auth
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args: { SERVICE: auth }
+    environment:
+      AUTH_DATABASE_URL: postgres://touchdown:touchdown@postgres-auth:5432/auth_db
+      NATS_URL: nats://nats:4222
+    depends_on:
+      postgres-auth: { condition: service_healthy }
+      nats:          { condition: service_healthy }
+
 networks:
   touchdown:
     driver: bridge

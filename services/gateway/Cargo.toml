@@ -6,10 +6,12 @@ rust-version.workspace = true
 
 [dependencies]
 shared            = { workspace = true }
+contracts         = { workspace = true }
 tokio             = { workspace = true }
 axum              = { workspace = true }
 tower             = { workspace = true }
 tower-http        = { workspace = true }
+uuid              = { workspace = true }
 serde             = { workspace = true }
 serde_json        = { workspace = true }
 tracing           = { workspace = true }
@@ -19,4 +21,5 @@ anyhow            = { workspace = true }
 
 [dev-dependencies]
 shared  = { workspace = true, features = ["testing"] }
+auth    = { path = "../auth" }
 reqwest = { workspace = true }

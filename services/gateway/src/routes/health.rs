@@ -4,7 +4,7 @@ use shared::health::{HealthCheck, HealthReport, check_nats};
 use crate::state::AppState;
 
 /// Liveness. Does NOT test ANY dependencies: if this endpoint fails, the process is dead and the orchestrator must restart it.
-///  Adding a Postgres check here would cause the pod to be terminated every time the database experiences an issue.
+/// Adding a Postgres check here would cause the pod to be terminated every time the database experiences an issue.
 #[utoipa::path(
     get, path = "/health", tag = "system",
     responses((status = 200, description = "The process responds", body = HealthReport))
@@ -24,7 +24,7 @@ pub async fn health(State(state): State<AppState>) -> impl IntoResponse {
 }
 
 /// Readiness. Tests dependencies: as long as NATS is unreachable,
-///  the Gateway must not receive any traffic.
+/// the Gateway must not receive any traffic.
 #[utoipa::path(
     get, path = "readyz", tag = "system",
     responses(

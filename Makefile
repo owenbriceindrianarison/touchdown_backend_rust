@@ -17,7 +17,7 @@ setup: ## First-time setup: .env + PASETO keys
 keys: ## Generate PASETO keys and inject them into .env
 	@cargo run -q -p shared --example gen_keys 2>/dev/null > .paseto.tmp
 	@sed -i.bak '/^PASETO_SECRET_KEY=/d;/^PASETO_PUBLIC_KEY=/d' .env && rm -f .env.bak
-	@cat .paseto.tmp >> .env && rm -f .paseto.tmp
+	@echo >> .env && cat .paseto.tmp >> .env && rm -f .paseto.tmp
 	@echo "🔑 PASETO keys written to .env"
 
 up: ## Start infrastructure only (Postgres, NATS, Redis, MinIO, Meili)
@@ -26,8 +26,8 @@ up: ## Start infrastructure only (Postgres, NATS, Redis, MinIO, Meili)
 	@echo "⏳ Waiting for health checks…" && sleep 3 && $(COMPOSE) ps
 
 dev: up ## Start infrastructure + all application services (hot-reload)
-	$(COMPOSE) up -d --build gateway
-	$(COMPOSE) logs -f gateway
+	$(COMPOSE) up -d --build auth gateway
+	$(COMPOSE) logs -f auth gateway
 
 down: ## Stop everything (volumes are preserved)
 	$(COMPOSE) down
